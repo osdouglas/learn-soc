@@ -94,7 +94,7 @@
     }
   }
   new Diagram('hero-c',drawChip);
-  const heroDescriptions={all:'Even without labels, some regions repeat more obviously than others.',cpu:'Four repeated cores. Each contains a mixture of control, execution, and storage.',gpu:'Repeated working groups—not just arithmetic lanes. Their memory repeats too.',npu:'Compute tiles and nearby buffers make up this illustrative neural-processing block.',mem:'Storage is distributed throughout the chip, including inside its compute regions.'};
+  const heroDescriptions={all:'What makes each region look different? Move the slider to reveal what’s inside.',cpu:'Four copies of a core. Inside each one, different circuits handle instructions, calculations, and storage.',gpu:'Each repeated group brings its own arithmetic lanes, instruction handling, and memory.',npu:'This example pairs repeated compute tiles with nearby buffers to keep their data close.',mem:'Memory turns up all over the chip. Look for the smaller gold patches inside the compute blocks.'};
   input('hero-reveal',v=>{state.heroReveal=v/100;setText('hero-percent',v+'%');redraw('hero-c');});
   choose('hero-filter',v=>{state.heroFilter=v;if(v!=='all'&&state.heroReveal<.5){state.heroReveal=1;$('hero-reveal').value=100;setText('hero-percent','100%');}setText('hero-status',heroDescriptions[v]);redraw('hero-c');});
 
@@ -122,7 +122,7 @@
     }
     line(ctx,ox,oy+hh,ox+ww,oy+hh,'#c5cabe',.8);
   });
-  function updateTiles(){setText('tiles-status',state.tilesMode==='memory'?'The same storage cell repeats. Shared rows and columns create a uniform array.':'The rows are regular. The mix of circuits within them is not.');setText('tiles-out',state.tilesZoom<.33?'Close':state.tilesZoom<.66?'Pulling back':'Many rows');redraw('tiles-c');}
+  function updateTiles(){setText('tiles-status',state.tilesMode==='memory'?'One storage cell, copied over and over. Shared rows and columns turn the copies into a grid.':'The cells sit in tidy rows, but their shapes and jobs vary.');setText('tiles-out',state.tilesZoom<.33?'Close':state.tilesZoom<.66?'Pulling back':'Many rows');redraw('tiles-c');}
   choose('tiles-mode',v=>{state.tilesMode=v;updateTiles();});input('tiles-zoom',v=>{state.tilesZoom=v/100;updateTiles();});
 
   let memHit=null;
@@ -152,11 +152,11 @@
   $('mem-c').addEventListener('click',e=>{if(!memHit)return;const b=e.currentTarget.getBoundingClientRect(),x=e.clientX-b.left-memHit.x,y=e.clientY-b.top-memHit.y,c=Math.floor(x/memHit.pitch),r=Math.floor(y/memHit.pitch);if(c>=0&&c<8&&r>=0&&r<8){state.memAddress=r*8+c;updateMemory();}});updateMemory();
 
   const cpuSteps=[
-    'Fetch: obtain instructions; branch prediction helps choose where to fetch next.',
-    'Decode and rename: turn instructions into internal work and map their register names.',
-    'Select ready work: track dependencies, schedule operations, and obtain their operands.',
-    'Execute: arithmetic units calculate; load/store machinery connects work to data memory.',
-    'Commit: completed work becomes architecturally official in the required program order.'
+    'Fetch: bring in instructions. Branch prediction makes a guess about which ones will be needed next.',
+    'Decode and rename: work out what each instruction asks for and map its register names to internal storage.',
+    'Select ready work: find operations whose inputs are ready, choose which can run, and collect their data.',
+    'Execute: do the calculations and read or write memory as the instructions require.',
+    'Commit: make the completed results official, in the order the program requires.'
   ];
   new Diagram('cpu-c',(ctx,w,h)=>{
     const ww=Math.min(w-38,610),hh=h-54,ox=(w-ww)/2,oy=28;
@@ -224,7 +224,7 @@
       }
     }
   });
-  function updateGPU(){const done=gpuDone();setText('gpu-out',`${state.gpuGroups} ${state.gpuGroups===1?'group':'groups'} · ${gpuLanes()} lanes`);setText('gpu-status',`${done} / 64 jobs complete · ${gpuRounds()} ideal issue rounds with ${gpuLanes()} lanes.`);setText('gpu-run',state.gpuRunning?'Ⅱ Pause jobs':done===64?'↺ Run again':'▶ Run 64 jobs');redraw('gpu-c');}
+  function updateGPU(){const done=gpuDone();setText('gpu-out',`${state.gpuGroups} ${state.gpuGroups===1?'group':'groups'} · ${gpuLanes()} lanes`);setText('gpu-status',`${done} / 64 jobs complete · ${gpuRounds()} rounds in this model with ${gpuLanes()} lanes.`);setText('gpu-run',state.gpuRunning?'Ⅱ Pause jobs':done===64?'↺ Run again':'▶ Run 64 jobs');redraw('gpu-c');}
   input('gpu-groups',v=>{state.gpuGroups=2**v;state.gpuProgress=0;state.gpuRunning=false;updateGPU();});
   $('gpu-run').addEventListener('click',()=>{if(gpuDone()===64)state.gpuProgress=0;state.gpuRunning=!state.gpuRunning;if(state.gpuRunning)enableMotion();updateGPU();});
   $('gpu-reset').addEventListener('click',()=>{state.gpuProgress=0;state.gpuRunning=false;updateGPU();});updateGPU();
@@ -254,7 +254,7 @@
     const finished=A.reduce((total,row,i)=>total+row.reduce((r,_,j)=>r+clamp(step-i-j,0,4),0),0);
     text(ctx,`${finished} / 64 multiply–accumulates`,w/2,oy+side+31,12,C.muted);
   });
-  function updateNPU(){const s=state.npuStep,i=Math.floor(state.npuSelected/4),j=state.npuSelected%4,n=clamp(s-i-j,0,4),value=matrixAt(s)[i][j];setText('npu-out',`Step ${s} / 10`);$('npu-step').value=s;setText('npu-cell-out',`Row ${i+1} · column ${j+1}`);$('npu-cell').value=state.npuSelected;const terms=Array.from({length:n},(_,k)=>`${A[i][k]}×${B[k][j]}`).join(' + ');setText('npu-status',n?`C[${i+1}, ${j+1}] = ${terms} = ${value} · ${n} of 4 products accumulated`:`C[${i+1}, ${j+1}] = 0 · Waiting for its first pair of operands`);setText('npu-run',state.npuRunning?'Ⅱ Pause':s===10?'↺ Replay':'▶ Play');redraw('npu-c');}
+  function updateNPU(){const s=state.npuStep,i=Math.floor(state.npuSelected/4),j=state.npuSelected%4,n=clamp(s-i-j,0,4),value=matrixAt(s)[i][j];setText('npu-out',`Step ${s} / 10`);$('npu-step').value=s;setText('npu-cell-out',`Row ${i+1} · column ${j+1}`);$('npu-cell').value=state.npuSelected;const terms=Array.from({length:n},(_,k)=>`${A[i][k]}×${B[k][j]}`).join(' + ');setText('npu-status',n?`C[${i+1}, ${j+1}] = ${terms} = ${value} · ${n} of 4 products added`:`C[${i+1}, ${j+1}] = 0 · Waiting for its first pair of numbers`);setText('npu-run',state.npuRunning?'Ⅱ Pause':s===10?'↺ Replay':'▶ Play');redraw('npu-c');}
   input('npu-step',v=>{state.npuStep=v;state.npuElapsed=0;state.npuRunning=false;updateNPU();});
   input('npu-cell',v=>{state.npuSelected=v;updateNPU();});
   $('npu-run').addEventListener('click',()=>{if(state.npuStep===10){state.npuStep=0;state.npuElapsed=0;}state.npuRunning=!state.npuRunning;if(state.npuRunning)enableMotion();updateNPU();});
@@ -310,9 +310,9 @@
         line(ctx,22,y,x-5,y,'#b6beab',.8);ctx.font=`12px ${sans}`;const labelW=ctx.measureText(names[k]).width+12;rect(ctx,17,y-11,labelW,22,rgba(C.paper,.98),null);text(ctx,names[k],22,y,12,k===0?C.ink:C.muted,'left',500);
       }
       ctx.restore();
-    }else{text(ctx,'A surface is not the whole circuit.',w/2,26,13,C.muted);}
+    }else{text(ctx,'More of the chip sits underneath.',w/2,26,13,C.muted);}
   });
-  input('layer-separate',v=>{state.layerSeparation=v/100;setText('layer-out',v<15?'Stacked':v>85?'Separated':'Separating');setText('layer-status',v<35?'A surface view can hide much of the organization underneath.':'The wiring has its own geometry. Not every line belongs to a compute unit.');redraw('layers-c');});
+  input('layer-separate',v=>{state.layerSeparation=v/100;setText('layer-out',v<15?'Stacked':v>85?'Separated':'Separating');setText('layer-status',v<35?'There’s more under the surface. Separate the layers to take a look.':'The wiring makes patterns too. Some of the lines carry signals; others deliver power.');redraw('layers-c');});
 
   // Only run visible demonstrations; nothing makes a network request.
   function tick(now){
