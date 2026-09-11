@@ -213,9 +213,10 @@
       if(!enabled){ctx.save();ctx.setLineDash([3,4]);rect(ctx,x,y,bw,bh,null,'#d4d8cd',1,3);ctx.restore();text(ctx,'+',x+bw/2,y+bh/2,17,'#cbd1c4');continue;}
       rect(ctx,x,y,bw,bh,rgba(C.gpu,.025),rgba(C.gpu,.62),1,3);
       const inset=7,labelW=22,ix=x+labelW+inset,iw=bw-labelW-inset*2;
-      text(ctx,`${i+1}`,x+inset+6,y+bh*.24,11,C.gpu,'center',600,mono);
+      const my=y+bh*.29,mh=Math.max(5,bh*.15);
+      text(ctx,`${i+1}`,x+inset+6,(y+my)/2,11,C.gpu,'center',600,mono);
       rect(ctx,ix,y+6,iw,Math.max(5,bh*.10),rgba(C.gpu,.40),null,0,1);
-      const my=y+bh*.29,mh=Math.max(5,bh*.15);rect(ctx,x+inset,my,bw-inset*2,mh,rgba(C.mem,.40),rgba(C.mem,.3),.7,1);
+      rect(ctx,x+inset,my,bw-inset*2,mh,rgba(C.mem,.40),rgba(C.mem,.3),.7,1);
       for(let k=0;k<4;k++){
         const lw=(bw-inset*2-9)/4,lx=x+inset+k*(lw+3),ly=y+bh*.57,lh=bh*.32;
         rect(ctx,lx,ly,lw,lh,rgba(C.gpu,state.gpuRunning?.26:.12),rgba(C.gpu,.40),.7,1);
