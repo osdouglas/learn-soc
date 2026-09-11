@@ -1,0 +1,2 @@
+# Keep media out of Git blobs; Git LFS stores the original asset bytes.
+assets/** filter=lfs diff=lfs merge=lfs -text
